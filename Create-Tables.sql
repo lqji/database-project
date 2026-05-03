@@ -1,61 +1,70 @@
-use flight
-
+USE flight;
 CREATE TABLE Airport (
-    IATA_code INT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    city VARCHAR(255) NOT NULL,
-    country VARCHAR(255) NOT NULL
+    AirportID INT IDENTITY(1,1) PRIMARY KEY,
+    IATA_code VARCHAR(10) UNIQUE NOT NULL,
+    Name VARCHAR(255) NOT NULL,
+    City VARCHAR(255) NOT NULL,
+    Country VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE Aircraft (
-    reg_number VARCHAR(255) PRIMARY KEY,
-    model VARCHAR(255) NOT NULL,
-    manufacturer VARCHAR(255) NOT NULL,
-    year_of_manufacture INT NOT NULL,
-    capacity INT NOT NULL
-)
+    AircraftID INT IDENTITY(1,1) PRIMARY KEY,
+    Reg_number VARCHAR(50) UNIQUE NOT NULL,
+    Model VARCHAR(255) NOT NULL,
+    Manufacturer VARCHAR(255) NOT NULL,
+    Capacity INT NOT NULL CHECK (Capacity > 0),
+    Year_of_manufacture INT NOT NULL
+);
 
 CREATE TABLE Flight (
-    flight_number VARCHAR(255) PRIMARY KEY,
-    departure_airport INT NOT NULL,
-    arrival_airport INT NOT NULL,
-    departure_time DATETIME NOT NULL,
-    arrival_time DATETIME NOT NULL,
-    aircraft_reg_number VARCHAR(255) NOT NULL,
-    FOREIGN KEY (departure_airport) REFERENCES Airport(IATA_code),
-    FOREIGN KEY (arrival_airport) REFERENCES Airport(IATA_code),
-    FOREIGN KEY (aircraft_reg_number) REFERENCES Aircraft(reg_number)
+    FlightID INT IDENTITY(1,1) PRIMARY KEY,
+    Flight_number VARCHAR(50) UNIQUE NOT NULL,
+    Departure_airportID INT NOT NULL,
+    Arrival_airportID INT NOT NULL,
+    AircraftID INT NOT NULL,
+    Departure_datetime DATETIME NOT NULL,
+    Arrival_datetime DATETIME NOT NULL,
+    Status VARCHAR(20) NOT NULL DEFAULT 'Scheduled',
+    CONSTRAINT CK_Flight_Time CHECK (Arrival_datetime > Departure_datetime),
+    CONSTRAINT CK_Flight_Status CHECK (Status IN ('Scheduled', 'Delayed', 'Cancelled', 'Completed')),
+    FOREIGN KEY (Departure_airportID) REFERENCES Airport(AirportID) ON DELETE NO ACTION ON UPDATE NO ACTION,
+    FOREIGN KEY (Arrival_airportID) REFERENCES Airport(AirportID) ON DELETE NO ACTION ON UPDATE NO ACTION,
+    FOREIGN KEY (AircraftID) REFERENCES Aircraft(AircraftID) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE Passenger (
-    passenger_id INT PRIMARY KEY,
-    first_name VARCHAR(255) NOT NULL,
-    last_name VARCHAR(255) NOT NULL,
-    date_of_birth DATE NOT NULL,
-    email VARCHAR(255) NOT NULL
+    PassengerID INT IDENTITY(1,1) PRIMARY KEY,
+    National_ID VARCHAR(50) UNIQUE NOT NULL,
+    Full_name VARCHAR(255) NOT NULL,
+    Email VARCHAR(255) UNIQUE NOT NULL,
+    Phone VARCHAR(50),
+    Nationality VARCHAR(100) NOT NULL,
+    Date_of_birth DATE NOT NULL
 );
 
 CREATE TABLE Booking (
-    booking_id INT PRIMARY KEY,
-    flight_number VARCHAR(255) NOT NULL,
-    passenger_id INT NOT NULL,
-    seat_number VARCHAR(10) NOT NULL,
-    booking_date DATETIME NOT NULL,
-    FOREIGN KEY (flight_number) REFERENCES Flight(flight_number),
-    FOREIGN KEY (passenger_id) REFERENCES Passenger(passenger_id)
+    BookingID INT IDENTITY(1,1) PRIMARY KEY,
+    PassengerID INT NOT NULL,
+    FlightID INT NOT NULL,
+    Seat_number VARCHAR(10) NOT NULL,
+    Class VARCHAR(20) NOT NULL CHECK (Class IN ('Economy', 'Business', 'First')),
+    Price DECIMAL(10, 2) NOT NULL CHECK (Price > 0),
+    Booking_date DATETIME NOT NULL DEFAULT GETDATE(),
+    FOREIGN KEY (PassengerID) REFERENCES Passenger(PassengerID) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (FlightID) REFERENCES Flight(FlightID) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE TABLE Crew (
-    crew_id INT PRIMARY KEY,
-    first_name VARCHAR(255) NOT NULL,
-    last_name VARCHAR(255) NOT NULL,
-    role VARCHAR(255) NOT NULL
+CREATE TABLE CrewMember (
+    CrewID INT IDENTITY(1,1) PRIMARY KEY,
+    Full_name VARCHAR(255) NOT NULL,
+    License_number VARCHAR(50) UNIQUE NOT NULL,
+    Role VARCHAR(50) NOT NULL CHECK (Role IN ('Pilot', 'Co-Pilot', 'Flight Attendant', 'Engineer'))
 );
 
-CREATE TABLE Flight_Crew (
-    flight_number VARCHAR(255) NOT NULL,
-    crew_id INT NOT NULL,
-    PRIMARY KEY (flight_number, crew_id),
-    FOREIGN KEY (flight_number) REFERENCES Flight(flight_number),
-    FOREIGN KEY (crew_id) REFERENCES Crew(crew_id)
+CREATE TABLE FlightCrew (
+    FlightID INT NOT NULL,
+    CrewID INT NOT NULL,
+    PRIMARY KEY (FlightID, CrewID),
+    FOREIGN KEY (FlightID) REFERENCES Flight(FlightID) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (CrewID) REFERENCES CrewMember(CrewID) ON DELETE CASCADE ON UPDATE CASCADE
 );
