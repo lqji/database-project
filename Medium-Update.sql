@@ -1,0 +1,7 @@
+SELECT f.flight_number, a.name AS airline_name, g.gate_code FROM Flight f JOIN Airline a ON f.airline_id = a.airline_id LEFT JOIN Gate g ON f.gate_id = g.gate_id;
+SELECT bg.tag_number, bg.type, p.first_name, p.last_name, f.flight_number FROM Baggage bg JOIN Booking bk ON bg.booking_id = bk.booking_id JOIN Passenger p ON bk.passenger_id = p.passenger_id JOIN Flight f ON bk.flight_id = f.flight_id;
+SELECT bk.booking_id, p.first_name, p.last_name, COUNT(bg.baggage_id) AS baggage_count FROM Booking bk JOIN Passenger p ON bk.passenger_id = p.passenger_id LEFT JOIN Baggage bg ON bk.booking_id = bg.booking_id GROUP BY bk.booking_id, p.first_name, p.last_name;
+SELECT f.flight_number, a.name AS airline_name, d.reason, d.duration_minutes FROM FlightDelayLog d JOIN Flight f ON d.flight_id = f.flight_id JOIN Airline a ON f.airline_id = a.airline_id;
+SELECT f.flight_number, SUM(bg.weight_kg) AS total_checked_weight FROM Flight f JOIN Booking bk ON f.flight_id = bk.flight_id JOIN Baggage bg ON bk.booking_id = bg.booking_id WHERE bg.type = 'Checked' GROUP BY f.flight_number;
+SELECT a.name, COUNT(f.flight_id) AS flight_count FROM Airline a LEFT JOIN Flight f ON a.airline_id = f.airline_id GROUP BY a.name ORDER BY flight_count DESC;
+SELECT f.flight_number, COUNT(d.delay_id) AS total_delays FROM Flight f JOIN FlightDelayLog d ON f.flight_id = d.flight_id GROUP BY f.flight_number HAVING COUNT(d.delay_id) > 1;
